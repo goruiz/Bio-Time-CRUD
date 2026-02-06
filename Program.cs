@@ -1,3 +1,6 @@
+using BioTime.Services;
+using BioTime.Settings;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,6 +8,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+// BioTime
+builder.Services.Configure<BioTimeSettings>(builder.Configuration.GetSection(BioTimeSettings.Section));
+builder.Services.AddHttpClient("BioTime", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["BioTime:BaseUrl"]!);
+});
+builder.Services.AddSingleton<IBioTimeService, BioTimeService>();
 
 var app = builder.Build();
 
