@@ -1,0 +1,6 @@
+@BioTime_HostAddress = http://localhost:5286
+
+GET {{BioTime_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
