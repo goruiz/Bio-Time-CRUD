@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using BioTime.Converters;
 
 namespace BioTime.DTOs.BioTime;
 
@@ -17,9 +18,11 @@ public class EmployeeDto
     public string LastName { get; set; } = string.Empty;
 
     [JsonPropertyName("department")]
+    [JsonConverter(typeof(DepartmentDtoConverter))]
     public DepartmentDto? Department { get; set; }
 
     [JsonPropertyName("position")]
+    [JsonConverter(typeof(PositionDtoConverter))]
     public PositionDto? Position { get; set; }
 
     [JsonPropertyName("hire_date")]

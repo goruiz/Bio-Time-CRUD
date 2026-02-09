@@ -31,8 +31,6 @@ public class BioTimeService : IBioTimeService
         var response = await SendWithRetryAsync(HttpMethod.Get,
             $"personnel/api/employees/?page={page}&page_size={pageSize}");
 
-        response.EnsureSuccessStatusCode();
-
         var json = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<PaginatedResponse<EmployeeDto>>(json)
             ?? throw new InvalidOperationException("No se pudo deserializar la respuesta de empleados.");
@@ -44,8 +42,6 @@ public class BioTimeService : IBioTimeService
     {
         var response = await SendWithRetryAsync(HttpMethod.Get,
             $"personnel/api/employees/{id}/");
-
-        response.EnsureSuccessStatusCode();
 
         var json = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<EmployeeDto>(json)
@@ -59,8 +55,6 @@ public class BioTimeService : IBioTimeService
         var response = await SendWithRetryAsync(HttpMethod.Post,
             "personnel/api/employees/", employee);
 
-        response.EnsureSuccessStatusCode();
-
         var json = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<EmployeeDto>(json)
             ?? throw new InvalidOperationException("No se pudo deserializar la respuesta al crear empleado.");
@@ -73,8 +67,6 @@ public class BioTimeService : IBioTimeService
         var response = await SendWithRetryAsync(HttpMethod.Put,
             $"personnel/api/employees/{id}/", employee);
 
-        response.EnsureSuccessStatusCode();
-
         var json = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<EmployeeDto>(json)
             ?? throw new InvalidOperationException($"No se pudo deserializar la respuesta al actualizar empleado {id}.");
@@ -84,10 +76,8 @@ public class BioTimeService : IBioTimeService
 
     public async Task DeleteEmployeeAsync(int id)
     {
-        var response = await SendWithRetryAsync(HttpMethod.Delete,
+        await SendWithRetryAsync(HttpMethod.Delete,
             $"personnel/api/employees/{id}/");
-
-        response.EnsureSuccessStatusCode();
     }
 
     private async Task<HttpResponseMessage> SendWithRetryAsync(HttpMethod method, string url, object? body = null)
@@ -103,8 +93,20 @@ public class BioTimeService : IBioTimeService
             response = await SendRequestAsync(client, method, url, body);
         }
 
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync();
+            _logger.LogError("Error de BioTime. Status: {Status}, Body: {Body}", response.StatusCode, errorBody);
+            throw new HttpRequestException($"BioTime respondió {(int)response.StatusCode}: {errorBody}");
+        }
+
         return response;
     }
+
+    private static readonly JsonSerializerOptions _snakeCaseOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+    };
 
     private static async Task<HttpResponseMessage> SendRequestAsync(HttpClient client, HttpMethod method, string url, object? body)
     {
@@ -112,7 +114,7 @@ public class BioTimeService : IBioTimeService
 
         if (body is not null)
         {
-            var json = JsonSerializer.Serialize(body);
+            var json = JsonSerializer.Serialize(body, _snakeCaseOptions);
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
         }
 
