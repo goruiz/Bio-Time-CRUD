@@ -30,7 +30,7 @@ public class AreaService : IAreaService
     public async Task<PaginatedResponse<AreaDto>> GetAreasAsync(int page = 1, int pageSize = 10)
     {
         var response = await SendWithRetryAsync(HttpMethod.Get,
-            $"personnel/api/area/?page={page}&page_size={pageSize}");
+            $"personnel/api/areas/?page={page}&page_size={pageSize}");
 
         var json = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<PaginatedResponse<AreaDto>>(json)
@@ -42,7 +42,7 @@ public class AreaService : IAreaService
     public async Task<AreaDto> GetAreaByIdAsync(int id)
     {
         var response = await SendWithRetryAsync(HttpMethod.Get,
-            $"personnel/api/area/{id}/");
+            $"personnel/api/areas/{id}/");
 
         var json = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<AreaDto>(json)
@@ -54,7 +54,7 @@ public class AreaService : IAreaService
     public async Task<AreaDto> CreateAreaAsync(CreateAreaDto area)
     {
         var response = await SendWithRetryAsync(HttpMethod.Post,
-            "personnel/api/area/", area);
+            "personnel/api/areas/", area);
 
         var json = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<AreaDto>(json)
@@ -66,7 +66,7 @@ public class AreaService : IAreaService
     public async Task<AreaDto> UpdateAreaAsync(int id, UpdateAreaDto area)
     {
         var response = await SendWithRetryAsync(HttpMethod.Put,
-            $"personnel/api/area/{id}/", area);
+            $"personnel/api/areas/{id}/", area);
 
         var json = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<AreaDto>(json)
@@ -78,7 +78,7 @@ public class AreaService : IAreaService
     public async Task DeleteAreaAsync(int id)
     {
         await SendWithRetryAsync(HttpMethod.Delete,
-            $"personnel/api/area/{id}/");
+            $"personnel/api/areas/{id}/");
     }
 
     private async Task<HttpResponseMessage> SendWithRetryAsync(HttpMethod method, string url, object? body = null)
@@ -99,6 +99,14 @@ public class AreaService : IAreaService
             var errorBody = await response.Content.ReadAsStringAsync();
             _logger.LogError("Error de BioTime. Status: {Status}, Body: {Body}", response.StatusCode, errorBody);
             throw new HttpRequestException($"BioTime respondió {(int)response.StatusCode}: {errorBody}");
+        }
+
+        var contentType = response.Content.Headers.ContentType?.MediaType;
+        if (contentType != null && !contentType.Contains("json"))
+        {
+            var responseBody = await response.Content.ReadAsStringAsync();
+            _logger.LogError("BioTime devolvió contenido no-JSON. ContentType: {ContentType}, Body: {Body}", contentType, responseBody);
+            throw new HttpRequestException($"BioTime devolvió contenido no-JSON ({contentType}) para {url}");
         }
 
         return response;
