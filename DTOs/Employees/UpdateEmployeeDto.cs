@@ -1,6 +1,6 @@
-namespace BioTime.DTOs.BioTime;
+namespace BioTime.DTOs.Employees;
 
-public class CreateEmployeeDto
+public class UpdateEmployeeDto
 {
     public string EmpCode { get; set; } = string.Empty;
     public string FirstName { get; set; } = string.Empty;

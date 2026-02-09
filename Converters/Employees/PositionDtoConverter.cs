@@ -1,8 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using BioTime.DTOs.BioTime;
+using BioTime.DTOs.Employees;
 
-namespace BioTime.Converters;
+namespace BioTime.Converters.Employees;
 
 public class PositionDtoConverter : JsonConverter<PositionDto?>
 {

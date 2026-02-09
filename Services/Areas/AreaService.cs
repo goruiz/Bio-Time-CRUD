@@ -2,82 +2,83 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using BioTime.DTOs.BioTime;
+using BioTime.DTOs;
+using BioTime.DTOs.Areas;
 using BioTime.Settings;
 using Microsoft.Extensions.Options;
 
-namespace BioTime.Services;
+namespace BioTime.Services.Areas;
 
-public class BioTimeService : IBioTimeService
+public class AreaService : IAreaService
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly BioTimeSettings _settings;
-    private readonly ILogger<BioTimeService> _logger;
+    private readonly ILogger<AreaService> _logger;
 
     private string? _token;
 
-    public BioTimeService(
+    public AreaService(
         IHttpClientFactory httpClientFactory,
         IOptions<BioTimeSettings> settings,
-        ILogger<BioTimeService> logger)
+        ILogger<AreaService> logger)
     {
         _httpClientFactory = httpClientFactory;
         _settings = settings.Value;
         _logger = logger;
     }
 
-    public async Task<PaginatedResponse<EmployeeDto>> GetEmployeesAsync(int page = 1, int pageSize = 10)
+    public async Task<PaginatedResponse<AreaDto>> GetAreasAsync(int page = 1, int pageSize = 10)
     {
         var response = await SendWithRetryAsync(HttpMethod.Get,
-            $"personnel/api/employees/?page={page}&page_size={pageSize}");
+            $"personnel/api/area/?page={page}&page_size={pageSize}");
 
         var json = await response.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<PaginatedResponse<EmployeeDto>>(json)
-            ?? throw new InvalidOperationException("No se pudo deserializar la respuesta de empleados.");
+        var result = JsonSerializer.Deserialize<PaginatedResponse<AreaDto>>(json)
+            ?? throw new InvalidOperationException("No se pudo deserializar la respuesta de áreas.");
 
         return result;
     }
 
-    public async Task<EmployeeDto> GetEmployeeByIdAsync(int id)
+    public async Task<AreaDto> GetAreaByIdAsync(int id)
     {
         var response = await SendWithRetryAsync(HttpMethod.Get,
-            $"personnel/api/employees/{id}/");
+            $"personnel/api/area/{id}/");
 
         var json = await response.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<EmployeeDto>(json)
-            ?? throw new InvalidOperationException($"No se pudo deserializar el empleado con ID {id}.");
+        var result = JsonSerializer.Deserialize<AreaDto>(json)
+            ?? throw new InvalidOperationException($"No se pudo deserializar el área con ID {id}.");
 
         return result;
     }
 
-    public async Task<EmployeeDto> CreateEmployeeAsync(CreateEmployeeDto employee)
+    public async Task<AreaDto> CreateAreaAsync(CreateAreaDto area)
     {
         var response = await SendWithRetryAsync(HttpMethod.Post,
-            "personnel/api/employees/", employee);
+            "personnel/api/area/", area);
 
         var json = await response.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<EmployeeDto>(json)
-            ?? throw new InvalidOperationException("No se pudo deserializar la respuesta al crear empleado.");
+        var result = JsonSerializer.Deserialize<AreaDto>(json)
+            ?? throw new InvalidOperationException("No se pudo deserializar la respuesta al crear área.");
 
         return result;
     }
 
-    public async Task<EmployeeDto> UpdateEmployeeAsync(int id, UpdateEmployeeDto employee)
+    public async Task<AreaDto> UpdateAreaAsync(int id, UpdateAreaDto area)
     {
         var response = await SendWithRetryAsync(HttpMethod.Put,
-            $"personnel/api/employees/{id}/", employee);
+            $"personnel/api/area/{id}/", area);
 
         var json = await response.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<EmployeeDto>(json)
-            ?? throw new InvalidOperationException($"No se pudo deserializar la respuesta al actualizar empleado {id}.");
+        var result = JsonSerializer.Deserialize<AreaDto>(json)
+            ?? throw new InvalidOperationException($"No se pudo deserializar la respuesta al actualizar área {id}.");
 
         return result;
     }
 
-    public async Task DeleteEmployeeAsync(int id)
+    public async Task DeleteAreaAsync(int id)
     {
         await SendWithRetryAsync(HttpMethod.Delete,
-            $"personnel/api/employees/{id}/");
+            $"personnel/api/area/{id}/");
     }
 
     private async Task<HttpResponseMessage> SendWithRetryAsync(HttpMethod method, string url, object? body = null)

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace BioTime.DTOs.BioTime;
+namespace BioTime.DTOs;
 
 public class LoginResponse
 {

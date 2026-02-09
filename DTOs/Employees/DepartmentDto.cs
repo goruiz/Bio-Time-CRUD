@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace BioTime.DTOs.BioTime;
+namespace BioTime.DTOs.Employees;
 
 public class DepartmentDto
 {

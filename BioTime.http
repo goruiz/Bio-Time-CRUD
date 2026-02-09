@@ -39,3 +39,35 @@ DELETE {{BioTime_HostAddress}}/api/biotime/employees/1
 Accept: application/json
 
 ###
+
+### Listar áreas (paginado)
+GET {{BioTime_HostAddress}}/api/area?page=1&pageSize=10
+Accept: application/json
+
+### Obtener área por ID
+GET {{BioTime_HostAddress}}/api/area/1
+Accept: application/json
+
+### Crear área
+POST {{BioTime_HostAddress}}/api/area
+Content-Type: application/json
+
+{
+  "areaCode": "AREA001",
+  "areaName": "Área Principal"
+}
+
+### Actualizar área
+PUT {{BioTime_HostAddress}}/api/area/1
+Content-Type: application/json
+
+{
+  "areaCode": "AREA001",
+  "areaName": "Área Principal Actualizada"
+}
+
+### Eliminar área
+DELETE {{BioTime_HostAddress}}/api/area/1
+Accept: application/json
+
+###

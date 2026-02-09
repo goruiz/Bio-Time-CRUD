@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
-using BioTime.Converters;
+using BioTime.Converters.Employees;
 
-namespace BioTime.DTOs.BioTime;
+namespace BioTime.DTOs.Employees;
 
 public class EmployeeDto
 {

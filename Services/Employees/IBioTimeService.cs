@@ -1,6 +1,7 @@
-using BioTime.DTOs.BioTime;
+using BioTime.DTOs;
+using BioTime.DTOs.Employees;
 
-namespace BioTime.Services;
+namespace BioTime.Services.Employees;
 
 public interface IBioTimeService
 {

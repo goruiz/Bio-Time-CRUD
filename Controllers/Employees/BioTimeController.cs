@@ -1,8 +1,9 @@
-using BioTime.DTOs.BioTime;
-using BioTime.Services;
+using BioTime.DTOs;
+using BioTime.DTOs.Employees;
+using BioTime.Services.Employees;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BioTime.Controllers;
+namespace BioTime.Controllers.Employees;
 
 [ApiController]
 [Route("api/[controller]")]

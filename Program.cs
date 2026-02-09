@@ -1,4 +1,5 @@
-using BioTime.Services;
+using BioTime.Services.Areas;
+using BioTime.Services.Employees;
 using BioTime.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +17,7 @@ builder.Services.AddHttpClient("BioTime", client =>
     client.BaseAddress = new Uri(builder.Configuration["BioTime:BaseUrl"]!);
 });
 builder.Services.AddSingleton<IBioTimeService, BioTimeService>();
+builder.Services.AddSingleton<IAreaService, AreaService>();
 
 var app = builder.Build();
 
