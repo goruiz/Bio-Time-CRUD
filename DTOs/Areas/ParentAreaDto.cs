@@ -1,9 +1,8 @@
 using System.Text.Json.Serialization;
-using BioTime.Converters.Areas;
 
 namespace BioTime.DTOs.Areas;
 
-public class AreaDto
+public class ParentAreaDto
 {
     [JsonPropertyName("id")]
     public int Id { get; set; }
@@ -15,9 +14,5 @@ public class AreaDto
     public string AreaName { get; set; } = string.Empty;
 
     [JsonPropertyName("parent_area")]
-    [JsonConverter(typeof(ParentAreaDtoConverter))]
-    public ParentAreaDto? ParentArea { get; set; }
-
-    [JsonPropertyName("parent_area_name")]
-    public string? ParentAreaName { get; set; }
+    public int? ParentArea { get; set; }
 }

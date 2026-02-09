@@ -120,6 +120,7 @@ public class AreaService : IAreaService
     private static async Task<HttpResponseMessage> SendRequestAsync(HttpClient client, HttpMethod method, string url, object? body)
     {
         var request = new HttpRequestMessage(method, url);
+        request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
         if (body is not null)
         {
