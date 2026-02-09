@@ -2,11 +2,8 @@ using System.Text.Json.Serialization;
 
 namespace BioTime.DTOs.BioTime;
 
-public class EmployeeDto
+public class UpdateEmployeeDto
 {
-    [JsonPropertyName("id")]
-    public int Id { get; set; }
-
     [JsonPropertyName("emp_code")]
     public string EmpCode { get; set; } = string.Empty;
 
@@ -17,10 +14,10 @@ public class EmployeeDto
     public string LastName { get; set; } = string.Empty;
 
     [JsonPropertyName("department")]
-    public DepartmentDto? Department { get; set; }
+    public int? Department { get; set; }
 
     [JsonPropertyName("position")]
-    public PositionDto? Position { get; set; }
+    public int? Position { get; set; }
 
     [JsonPropertyName("hire_date")]
     public string? HireDate { get; set; }

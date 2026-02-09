@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using BioTime.DTOs.BioTime;
 using BioTime.Settings;
@@ -27,17 +28,8 @@ public class BioTimeService : IBioTimeService
 
     public async Task<PaginatedResponse<EmployeeDto>> GetEmployeesAsync(int page = 1, int pageSize = 10)
     {
-        var client = await GetAuthenticatedClientAsync();
-
-        var response = await client.GetAsync($"personnel/api/employees/?page={page}&page_size={pageSize}");
-
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-        {
-            _logger.LogWarning("Token expirado. Reintentando login...");
-            _token = null;
-            client = await GetAuthenticatedClientAsync();
-            response = await client.GetAsync($"personnel/api/employees/?page={page}&page_size={pageSize}");
-        }
+        var response = await SendWithRetryAsync(HttpMethod.Get,
+            $"personnel/api/employees/?page={page}&page_size={pageSize}");
 
         response.EnsureSuccessStatusCode();
 
@@ -46,6 +38,85 @@ public class BioTimeService : IBioTimeService
             ?? throw new InvalidOperationException("No se pudo deserializar la respuesta de empleados.");
 
         return result;
+    }
+
+    public async Task<EmployeeDto> GetEmployeeByIdAsync(int id)
+    {
+        var response = await SendWithRetryAsync(HttpMethod.Get,
+            $"personnel/api/employees/{id}/");
+
+        response.EnsureSuccessStatusCode();
+
+        var json = await response.Content.ReadAsStringAsync();
+        var result = JsonSerializer.Deserialize<EmployeeDto>(json)
+            ?? throw new InvalidOperationException($"No se pudo deserializar el empleado con ID {id}.");
+
+        return result;
+    }
+
+    public async Task<EmployeeDto> CreateEmployeeAsync(CreateEmployeeDto employee)
+    {
+        var response = await SendWithRetryAsync(HttpMethod.Post,
+            "personnel/api/employees/", employee);
+
+        response.EnsureSuccessStatusCode();
+
+        var json = await response.Content.ReadAsStringAsync();
+        var result = JsonSerializer.Deserialize<EmployeeDto>(json)
+            ?? throw new InvalidOperationException("No se pudo deserializar la respuesta al crear empleado.");
+
+        return result;
+    }
+
+    public async Task<EmployeeDto> UpdateEmployeeAsync(int id, UpdateEmployeeDto employee)
+    {
+        var response = await SendWithRetryAsync(HttpMethod.Put,
+            $"personnel/api/employees/{id}/", employee);
+
+        response.EnsureSuccessStatusCode();
+
+        var json = await response.Content.ReadAsStringAsync();
+        var result = JsonSerializer.Deserialize<EmployeeDto>(json)
+            ?? throw new InvalidOperationException($"No se pudo deserializar la respuesta al actualizar empleado {id}.");
+
+        return result;
+    }
+
+    public async Task DeleteEmployeeAsync(int id)
+    {
+        var response = await SendWithRetryAsync(HttpMethod.Delete,
+            $"personnel/api/employees/{id}/");
+
+        response.EnsureSuccessStatusCode();
+    }
+
+    private async Task<HttpResponseMessage> SendWithRetryAsync(HttpMethod method, string url, object? body = null)
+    {
+        var client = await GetAuthenticatedClientAsync();
+        var response = await SendRequestAsync(client, method, url, body);
+
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            _logger.LogWarning("Token expirado. Reintentando login...");
+            _token = null;
+            client = await GetAuthenticatedClientAsync();
+            response = await SendRequestAsync(client, method, url, body);
+        }
+
+        return response;
+    }
+
+    private static async Task<HttpResponseMessage> SendRequestAsync(HttpClient client, HttpMethod method, string url, object? body)
+    {
+        var request = new HttpRequestMessage(method, url);
+
+        if (body is not null)
+        {
+            var json = JsonSerializer.Serialize(body);
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+        }
+
+        return await client.SendAsync(request);
     }
 
     private async Task<HttpClient> GetAuthenticatedClientAsync()

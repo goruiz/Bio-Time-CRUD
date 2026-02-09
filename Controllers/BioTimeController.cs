@@ -1,3 +1,4 @@
+using BioTime.DTOs.BioTime;
 using BioTime.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -27,6 +28,66 @@ public class BioTimeController : ControllerBase
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "Error al comunicarse con BioTime.");
+            return StatusCode(502, new { error = "Error al comunicarse con BioTime.", detail = ex.Message });
+        }
+    }
+
+    [HttpGet("employees/{id}")]
+    public async Task<IActionResult> GetEmployeeById(int id)
+    {
+        try
+        {
+            var result = await _bioTimeService.GetEmployeeByIdAsync(id);
+            return Ok(result);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Error al obtener empleado {Id} de BioTime.", id);
+            return StatusCode(502, new { error = "Error al comunicarse con BioTime.", detail = ex.Message });
+        }
+    }
+
+    [HttpPost("employees")]
+    public async Task<IActionResult> CreateEmployee([FromBody] CreateEmployeeDto employee)
+    {
+        try
+        {
+            var result = await _bioTimeService.CreateEmployeeAsync(employee);
+            return CreatedAtAction(nameof(GetEmployeeById), new { id = result.Id }, result);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Error al crear empleado en BioTime.");
+            return StatusCode(502, new { error = "Error al comunicarse con BioTime.", detail = ex.Message });
+        }
+    }
+
+    [HttpPut("employees/{id}")]
+    public async Task<IActionResult> UpdateEmployee(int id, [FromBody] UpdateEmployeeDto employee)
+    {
+        try
+        {
+            var result = await _bioTimeService.UpdateEmployeeAsync(id, employee);
+            return Ok(result);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Error al actualizar empleado {Id} en BioTime.", id);
+            return StatusCode(502, new { error = "Error al comunicarse con BioTime.", detail = ex.Message });
+        }
+    }
+
+    [HttpDelete("employees/{id}")]
+    public async Task<IActionResult> DeleteEmployee(int id)
+    {
+        try
+        {
+            await _bioTimeService.DeleteEmployeeAsync(id);
+            return NoContent();
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Error al eliminar empleado {Id} en BioTime.", id);
             return StatusCode(502, new { error = "Error al comunicarse con BioTime.", detail = ex.Message });
         }
     }

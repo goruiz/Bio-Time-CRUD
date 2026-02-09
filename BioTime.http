@@ -1,6 +1,41 @@
 @BioTime_HostAddress = http://localhost:5286
 
-GET {{BioTime_HostAddress}}/weatherforecast/
+### Listar empleados (paginado)
+GET {{BioTime_HostAddress}}/api/biotime/employees?page=1&pageSize=10
+Accept: application/json
+
+### Obtener empleado por ID
+GET {{BioTime_HostAddress}}/api/biotime/employees/1
+Accept: application/json
+
+### Crear empleado
+POST {{BioTime_HostAddress}}/api/biotime/employees
+Content-Type: application/json
+
+{
+  "empCode": "EMP001",
+  "firstName": "Juan",
+  "lastName": "Perez",
+  "department": 1,
+  "position": 1,
+  "hireDate": "2026-01-15"
+}
+
+### Actualizar empleado
+PUT {{BioTime_HostAddress}}/api/biotime/employees/1
+Content-Type: application/json
+
+{
+  "empCode": "EMP001",
+  "firstName": "Juan Carlos",
+  "lastName": "Perez Lopez",
+  "department": 1,
+  "position": 2,
+  "hireDate": "2026-01-15"
+}
+
+### Eliminar empleado
+DELETE {{BioTime_HostAddress}}/api/biotime/employees/1
 Accept: application/json
 
 ###
