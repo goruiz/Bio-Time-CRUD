@@ -1,5 +1,6 @@
-using BioTime.DTOs;
+using BioTime.DTOs.Devices;
 using BioTime.DTOs.Employees;
+using BioTime.Services.Devices;
 using BioTime.Services.Employees;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,11 +11,16 @@ namespace BioTime.Controllers.Employees;
 public class BioTimeController : ControllerBase
 {
     private readonly IBioTimeService _bioTimeService;
+    private readonly IDeviceService _deviceService;
     private readonly ILogger<BioTimeController> _logger;
 
-    public BioTimeController(IBioTimeService bioTimeService, ILogger<BioTimeController> logger)
+    public BioTimeController(
+        IBioTimeService bioTimeService,
+        IDeviceService deviceService,
+        ILogger<BioTimeController> logger)
     {
         _bioTimeService = bioTimeService;
+        _deviceService = deviceService;
         _logger = logger;
     }
 
@@ -54,7 +60,11 @@ public class BioTimeController : ControllerBase
         try
         {
             var result = await _bioTimeService.CreateEmployeeAsync(employee);
-            return CreatedAtAction(nameof(GetEmployeeById), new { id = result.Id }, result);
+
+            var syncResults = await SyncDevicesAsync();
+
+            return CreatedAtAction(nameof(GetEmployeeById), new { id = result.Id },
+                new { data = result, sync = syncResults });
         }
         catch (HttpRequestException ex)
         {
@@ -69,7 +79,10 @@ public class BioTimeController : ControllerBase
         try
         {
             var result = await _bioTimeService.UpdateEmployeeAsync(id, employee);
-            return Ok(result);
+
+            var syncResults = await SyncDevicesAsync();
+
+            return Ok(new { data = result, sync = syncResults });
         }
         catch (HttpRequestException ex)
         {
@@ -84,12 +97,28 @@ public class BioTimeController : ControllerBase
         try
         {
             await _bioTimeService.DeleteEmployeeAsync(id);
+
+            await SyncDevicesAsync();
+
             return NoContent();
         }
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "Error al eliminar empleado {Id} en BioTime.", id);
             return StatusCode(502, new { error = "Error al comunicarse con BioTime.", detail = ex.Message });
+        }
+    }
+
+    private async Task<List<SyncResultDto>?> SyncDevicesAsync()
+    {
+        try
+        {
+            return await _deviceService.SyncAllTerminalsAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "CRUD exitoso pero falló la sincronización con dispositivos.");
+            return null;
         }
     }
 }

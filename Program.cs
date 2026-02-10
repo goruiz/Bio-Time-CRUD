@@ -1,4 +1,5 @@
 using BioTime.Services.Areas;
+using BioTime.Services.Devices;
 using BioTime.Services.Employees;
 using BioTime.Settings;
 
@@ -18,6 +19,7 @@ builder.Services.AddHttpClient("BioTime", client =>
 });
 builder.Services.AddSingleton<IBioTimeService, BioTimeService>();
 builder.Services.AddSingleton<IAreaService, AreaService>();
+builder.Services.AddSingleton<IDeviceService, DeviceService>();
 
 var app = builder.Build();
 

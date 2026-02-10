@@ -1,5 +1,7 @@
 using BioTime.DTOs.Areas;
+using BioTime.DTOs.Devices;
 using BioTime.Services.Areas;
+using BioTime.Services.Devices;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BioTime.Controllers.Areas;
@@ -9,11 +11,16 @@ namespace BioTime.Controllers.Areas;
 public class AreaController : ControllerBase
 {
     private readonly IAreaService _areaService;
+    private readonly IDeviceService _deviceService;
     private readonly ILogger<AreaController> _logger;
 
-    public AreaController(IAreaService areaService, ILogger<AreaController> logger)
+    public AreaController(
+        IAreaService areaService,
+        IDeviceService deviceService,
+        ILogger<AreaController> logger)
     {
         _areaService = areaService;
+        _deviceService = deviceService;
         _logger = logger;
     }
 
@@ -53,7 +60,11 @@ public class AreaController : ControllerBase
         try
         {
             var result = await _areaService.CreateAreaAsync(area);
-            return CreatedAtAction(nameof(GetAreaById), new { id = result.Id }, result);
+
+            var syncResults = await SyncDevicesAsync();
+
+            return CreatedAtAction(nameof(GetAreaById), new { id = result.Id },
+                new { data = result, sync = syncResults });
         }
         catch (HttpRequestException ex)
         {
@@ -68,7 +79,10 @@ public class AreaController : ControllerBase
         try
         {
             var result = await _areaService.UpdateAreaAsync(id, area);
-            return Ok(result);
+
+            var syncResults = await SyncDevicesAsync();
+
+            return Ok(new { data = result, sync = syncResults });
         }
         catch (HttpRequestException ex)
         {
@@ -83,12 +97,28 @@ public class AreaController : ControllerBase
         try
         {
             await _areaService.DeleteAreaAsync(id);
+
+            await SyncDevicesAsync();
+
             return NoContent();
         }
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "Error al eliminar área {Id} en BioTime.", id);
             return StatusCode(502, new { error = "Error al comunicarse con BioTime.", detail = ex.Message });
+        }
+    }
+
+    private async Task<List<SyncResultDto>?> SyncDevicesAsync()
+    {
+        try
+        {
+            return await _deviceService.SyncAllTerminalsAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "CRUD exitoso pero falló la sincronización con dispositivos.");
+            return null;
         }
     }
 }
